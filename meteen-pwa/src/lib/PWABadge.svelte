@@ -52,7 +52,7 @@
       : "";
 </script>
 
-{#if toast}
+<!-- {#if toast}
   <div class="pwa-toast" role="alert" aria-labelledby="toast-message">
     <div class="message">
       <span id="toast-message">
@@ -69,7 +69,7 @@
     </div>
   </div>
 {/if}
-
+ -->
 <style>
   .pwa-toast {
     position: fixed;

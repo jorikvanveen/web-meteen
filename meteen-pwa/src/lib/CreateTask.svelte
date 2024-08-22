@@ -21,6 +21,7 @@
   import { fly } from "svelte/transition";
   import type VaultStorage from "./storage";
   import DatePicker from "./DatePicker.svelte";
+  import { formatDate, formatTime } from "./time";
 
   const storage: VaultStorage = getContext("storage");
   const dispatch = createEventDispatcher();
@@ -53,6 +54,20 @@
     { name: "Home", value: "home" },
   ];
   let selectedProject = "inbox";
+
+  let scheduleDate: Date | null = null;
+  let scheduleDateHasTime = false;
+  $: scheduleDateFormatted =
+    (scheduleDate ? formatDate(scheduleDate) : "") +
+    " " +
+    (scheduleDate && scheduleDateHasTime ? formatTime(scheduleDate) : "");
+
+  let deadlineDate: Date | null = null;
+  let deadlineDateHasTime = false;
+  $: deadlineDateFormatted =
+    (deadlineDate ? formatDate(deadlineDate) : "") +
+    " " +
+    (deadlineDate && deadlineDateHasTime ? formatTime(deadlineDate) : "");
 
   let pickingScheduled = false;
   let pickingDeadline = false;
@@ -112,14 +127,19 @@
         ></Select>
       </ButtonGroup>
     </div>
-    <div class="flex flex-row justify-between gap-4">
+    <div class="flex flex-col sm:flex-row mt-4 sm:mt-0 justify-between gap-4">
       <div class="w-full">
         <Label>Deadline</Label>
-        <ButtonGroup>
+        <ButtonGroup class="w-full">
           <InputAddon>
             <HourglassOutline />
           </InputAddon>
-          <Input />
+          <Input
+            class="w-full"
+            type="reset"
+            value={deadlineDateFormatted}
+            on:click={() => (pickingDeadline = true)}
+          />
         </ButtonGroup>
       </div>
       <div class="w-full">
@@ -131,6 +151,7 @@
           <Input
             class="w-full"
             type="reset"
+            value={scheduleDateFormatted}
             on:click={() => (pickingScheduled = true)}
           />
         </ButtonGroup>
@@ -138,9 +159,20 @@
     </div>
   </div>
 </div>
+{#if pickingDeadline}
+  <DatePicker
+    bind:datetime={deadlineDate}
+    bind:withTime={deadlineDateHasTime}
+    on:close={(e) => {
+      e.stopPropagation();
+      pickingDeadline = false;
+    }}
+  />
+{/if}
 {#if pickingScheduled}
   <DatePicker
-    title="Schedule task"
+    bind:datetime={scheduleDate}
+    bind:withTime={scheduleDateHasTime}
     on:close={(e) => {
       e.stopImmediatePropagation();
       e.stopPropagation();
