@@ -6,6 +6,8 @@ use std::sync::{LazyLock, Mutex};
 
 use wasm_bindgen::prelude::*;
 
+// TODO: ERROR HANDLING
+
 #[wasm_bindgen]
 extern "C" {
     fn alert(s: &str);
@@ -54,6 +56,18 @@ pub fn deserialize(data: Vec<u8>) {
 }
 
 #[wasm_bindgen]
+pub fn serialize_json() -> String {
+    let db = DB.lock().unwrap();
+    serde_json::to_string(&*db).unwrap()
+}
+
+#[wasm_bindgen]
+pub fn deserialize_json(json: String) {
+    let db: MeteenStorage = serde_json::from_str(&json).unwrap();
+    *DB.lock().unwrap() = db;
+}
+
+#[wasm_bindgen]
 pub fn create_task(task: glue::Task, project_id: Option<String>) {
     DB.lock().unwrap().apply_operation(Operation::CreateTask {
         task: task.into(),
@@ -63,7 +77,7 @@ pub fn create_task(task: glue::Task, project_id: Option<String>) {
 
 #[wasm_bindgen]
 pub fn get_all_projects() -> JsValue {
-    return DB
+    let projects = DB
         .lock()
         .unwrap()
         .data
@@ -71,8 +85,9 @@ pub fn get_all_projects() -> JsValue {
         .values()
         .cloned()
         .map(Into::into)
-        .collect::<Vec<glue::Project>>()
-        .into();
+        .collect::<Vec<glue::Project>>();
+
+    return projects.clone().into();
 }
 
 #[wasm_bindgen]
@@ -84,4 +99,12 @@ pub fn update_task_done(task_id: String, done: bool) {
 #[wasm_bindgen]
 pub fn create_new_db() -> MeteenStorage {
     MeteenStorage::new()
+}
+
+#[wasm_bindgen]
+pub fn create_project(project: glue::Project) {
+    let project: meteen_model::Project = project.into();
+    let op = Operation::CreateProject { project };
+
+    DB.lock().unwrap().apply_operation(op);
 }

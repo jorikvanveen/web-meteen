@@ -34,7 +34,7 @@
 {#await loading}
   <span>...</span>
 {:then _}
-  <div class="app-container p-4 pt-6 box-border">
+  <div class="app-container p-4 pt-6 box-border max-w-4xl m-auto">
     {#if activePage == Page.Today}
       <Today />
     {:else if activePage == Page.Inbox}
@@ -69,5 +69,6 @@
     }
   </style>
 {:catch error}
+  {console.error(error)}
   <p>Something went wrong</p>
 {/await}

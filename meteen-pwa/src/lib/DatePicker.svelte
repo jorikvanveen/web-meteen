@@ -28,6 +28,8 @@
 
   const dispatch = createEventDispatcher();
 
+  const isFirefox = !!navigator.userAgent.search("Firefox"); // Required because firefox decided not to implement any kind of picker for date="time"
+
   function onBack(e: PopStateEvent) {
     e.preventDefault();
     e.stopImmediatePropagation();
@@ -219,9 +221,9 @@
 ></div>
 <div
   transition:fly={{ duration: 200, y: 1000 }}
-  class="fixed bottom-0 left-0 w-full max-h-[3/4] bg-white z-30 flex flex-col box-border p-4"
+  class="fixed bottom-0 left-0 w-full max-h-[3/4] bg-white z-30 flex flex-col items-center box-border p-4"
 >
-  <div class="flex flex-row gap-4 justify-between">
+  <div class="flex flex-row gap-4 justify-between w-full max-w-xl">
     <div class="flex flex-col gap-1 w-full">
       <span class="mb-2 text-right text-xl"
         >{datetime ? formatDate(datetime) : "(No date)"}</span

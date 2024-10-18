@@ -1,6 +1,7 @@
 use chrono::{DateTime, NaiveDateTime, NaiveTime, Offset, TimeZone, Utc};
 use wasm_bindgen::prelude::wasm_bindgen;
 
+#[derive(Clone)]
 #[wasm_bindgen(getter_with_clone)]
 pub struct Project {
     pub name: String,
@@ -52,6 +53,7 @@ pub struct Task {
     pub done: bool,
     pub scheduled: Option<DateOrDateTime>,
     pub deadline: Option<DateOrDateTime>,
+    pub priority: Priority,
 }
 
 #[wasm_bindgen]
@@ -64,6 +66,7 @@ impl Task {
             done: false,
             scheduled: None,
             deadline: None,
+            priority: Priority { priority: 1 },
         }
     }
 }
@@ -76,6 +79,7 @@ impl From<meteen_model::Task> for Task {
             done: value.done,
             scheduled: value.scheduled.map(Into::into),
             deadline: value.deadline.map(Into::into),
+            priority: value.priority.into(),
         }
     }
 }
@@ -88,6 +92,7 @@ impl From<Task> for meteen_model::Task {
             done: value.done,
             scheduled: value.scheduled.map(Into::into),
             deadline: value.deadline.map(Into::into),
+            priority: value.priority.into(),
         }
     }
 }
@@ -116,7 +121,7 @@ impl From<meteen_model::DateOrDateTime> for DateOrDateTime {
             meteen_model::DateOrDateTime::Date(date) => Self {
                 has_time: false,
                 utc_millis: date
-                    .and_hms_opt(23, 59, 59)
+                    .and_hms_opt(12, 0, 0)
                     .unwrap()
                     .and_utc()
                     .timestamp_millis(),
@@ -136,6 +141,45 @@ impl From<DateOrDateTime> for meteen_model::DateOrDateTime {
             meteen_model::DateOrDateTime::DateTime(datetime)
         } else {
             meteen_model::DateOrDateTime::Date(datetime.date_naive())
+        }
+    }
+}
+
+#[wasm_bindgen(getter_with_clone)]
+#[derive(Clone, Debug)]
+pub struct Priority {
+    priority: usize,
+}
+
+#[wasm_bindgen]
+impl Priority {
+    #[wasm_bindgen(constructor)]
+    pub fn new(priority: usize) -> Priority {
+        Priority { priority }
+    }
+}
+
+impl From<Priority> for meteen_model::Priority {
+    fn from(value: Priority) -> Self {
+        match value.priority {
+            0 => meteen_model::Priority::Low,
+            1 => meteen_model::Priority::Standard,
+            2 => meteen_model::Priority::High,
+            3 => meteen_model::Priority::Urgent,
+            _ => panic!("Invalid priority: {}", value.priority),
+        }
+    }
+}
+
+impl From<meteen_model::Priority> for Priority {
+    fn from(value: meteen_model::Priority) -> Self {
+        Priority {
+            priority: match value {
+                meteen_model::Priority::Low => 0,
+                meteen_model::Priority::Standard => 1,
+                meteen_model::Priority::High => 2,
+                meteen_model::Priority::Urgent => 3,
+            },
         }
     }
 }

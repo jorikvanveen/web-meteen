@@ -16,6 +16,9 @@
           nodePackages.svelte-language-server
           tailwindcss-language-server
           wasm-pack
+          cargo
+          rustc
+          rust-analyzer
         ];
       };
     }

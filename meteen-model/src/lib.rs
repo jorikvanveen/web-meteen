@@ -19,6 +19,15 @@ pub struct Task {
     pub done: bool,
     pub scheduled: Option<DateOrDateTime>,
     pub deadline: Option<DateOrDateTime>,
+    pub priority: Priority,
+}
+
+#[derive(Serialize, Deserialize, Hash, Clone, PartialEq, Eq, Debug)]
+pub enum Priority {
+    Low,
+    Standard,
+    High,
+    Urgent,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -313,10 +322,10 @@ impl Database {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use std::collections::HashMap;
 
-    use crate::{Database, Operation, Project, Task};
+    use crate::{Database, Operation, Priority, Project, Task};
 
     #[test]
     pub fn sync() {
@@ -337,6 +346,7 @@ mod test {
                     done: false,
                     scheduled: None,
                     deadline: None,
+                    priority: Priority::Standard,
                 },
                 project_id: Some("myproj".into()),
             },
@@ -347,6 +357,7 @@ mod test {
                     done: true,
                     scheduled: None,
                     deadline: None,
+                    priority: Priority::Standard,
                 },
                 project_id: Some("myproj".into()),
             },
@@ -384,16 +395,5 @@ mod test {
         // After syncing all states should be equal
         assert_eq!(server_state, client_a_state);
         assert_eq!(server_state, client_b_state);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        //let result = add(2, 2);
-        //assert_eq!(result, 4);
     }
 }

@@ -17,6 +17,7 @@
   let adding = false;
 
   $: tasks = $projects[0].tasks;
+  $: console.log(tasks);
 </script>
 
 <h1 class="text-4xl font-bold pb-2">Today</h1>
