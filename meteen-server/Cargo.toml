@@ -4,5 +4,25 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sea-orm = { version = "1.1.0", features = ["runtime-tokio-rustls", "sqlx-postgres", "macros"] }
-tokio = "1.40.0"
+axum = { version = "0.7.7", features = ["macros", "tokio"] }
+color-eyre = "0.6.3"
+dotenvy = "0.15.7"
+rand = { version = "0.8.5", features = ["std_rng"] }
+sea-orm = { version = "1.1.0", features = [
+    "runtime-tokio-rustls",
+    "sqlx-postgres",
+    "macros",
+] }
+tokio = { version = "1.40.0", features = ["rt-multi-thread"] }
+tracing-subscriber = "0.3.18"
+entity = { path = "entity" }
+migration = { path = "migration" }
+serde = { version = "1.0.210", features = ["derive"] }
+sha2 = "0.10.8"
+meteen-model = { path = "../meteen-model" }
+nanoid = "0.4.0"
+directories = "5.0.1"
+
+[dependencies.sea-orm-migration]
+features = ["sqlx-postgres", "runtime-tokio-rustls"]
+version = "1.1.0"

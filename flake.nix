@@ -18,7 +18,11 @@
           wasm-pack
           cargo
           rustc
+          rustfmt
           rust-analyzer
+          docker-compose
+          podman-compose
+          sea-orm-cli
         ];
       };
     }
