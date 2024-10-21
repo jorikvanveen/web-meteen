@@ -5,7 +5,6 @@ use color_eyre::{
 use std::{
     env::var,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
-    path::Path,
     str::FromStr,
 };
 
@@ -21,7 +20,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn from_env() -> Result<Config> {
+    pub async fn from_env() -> Result<Config> {
         let address: IpAddr = {
             let addr_str = var("METEEN_ADDRESS").unwrap_or("127.0.0.1".into());
             match (Ipv4Addr::from_str(&addr_str), Ipv6Addr::from_str(&addr_str)) {
@@ -36,24 +35,24 @@ impl Config {
             .parse()
             .context("METEEN_PORT is not a valid port")?;
 
-        let db_name = empty_string_is_none(var("METEEN_DB_NAME").ok())
-            .unwrap_or("meteen".into());
-        let db_pass = empty_string_is_none(var("METEEN_DB_PASS").ok())
-            .unwrap_or("meteen".into());
-        let db_user = empty_string_is_none(var("METEEN_DB_USER").ok())
-            .unwrap_or("meteen".into());
-        let db_host = empty_string_is_none(var("METEEN_DB_HOST").ok())
-            .unwrap_or("127.0.0.1".into());
+        let db_name = empty_string_is_none(var("METEEN_DB_NAME").ok()).unwrap_or("meteen".into());
+        let db_pass = empty_string_is_none(var("METEEN_DB_PASS").ok()).unwrap_or("meteen".into());
+        let db_user = empty_string_is_none(var("METEEN_DB_USER").ok()).unwrap_or("meteen".into());
+        let db_host =
+            empty_string_is_none(var("METEEN_DB_HOST").ok()).unwrap_or("127.0.0.1".into());
 
-        let data_dir = match var("METEEN_DATA_DIR") {
-            Ok(path_str) => std::path::PathBuf::from_str(&path_str)
+        let data_dir = match empty_string_is_none(var("METEEN_DATA_DIR").ok()) {
+            Some(path_str) => std::path::PathBuf::from_str(&path_str)
                 .context("METEEN_DATA_DIR is not a valid path")?,
-            Err(_) => {
+            None => {
                 let dirs = directories::BaseDirs::new()
                     .ok_or(eyre!("Could not determine base directory"))?;
-                dirs.data_dir().join("/meteen-data")
+                dirs.data_dir().join("meteen-data")
             }
         };
+
+        tokio::fs::create_dir_all(&data_dir).await?;
+        tokio::fs::create_dir_all(&data_dir.join("vaults")).await?;
 
         Ok(Config {
             address,
@@ -62,7 +61,7 @@ impl Config {
             db_pass,
             db_user,
             db_host,
-            data_dir,
+            data_dir
         })
     }
 }
@@ -71,6 +70,6 @@ fn empty_string_is_none(str: Option<String>) -> Option<String> {
     match str {
         Some(str) if str == "" => Some("127.0.0.1".into()),
         Some(str) => Some(str.into()),
-        _ => None
+        _ => None,
     }
 }

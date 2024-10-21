@@ -9,12 +9,14 @@ mod cfg;
 mod routes;
 mod vaults;
 
-use routes::create_user::create_user;
 use cfg::Config;
+use routes::create_user::create_user;
+use std::sync::Arc;
 
 #[derive(Clone)]
 struct AppState {
     conn: DatabaseConnection,
+    vaults: Arc<vaults::Vaults>
 }
 
 #[tokio::main]
@@ -23,7 +25,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
     color_eyre::install()?;
 
-    let config = Config::from_env()?;
+    let config = Config::from_env().await?;
     dbg!(&config);
     let Config {
         db_user,
@@ -44,7 +46,7 @@ async fn main() -> Result<()> {
     let app = Router::new()
         .route("/", get(root))
         .route("/create", post(create_user))
-        .with_state(AppState { conn: connection });
+        .with_state(AppState { conn: connection, vaults: Arc::new(vaults::Vaults::new(data_dir)) });
 
     axum::serve(listener, app).await?;
     Ok(())

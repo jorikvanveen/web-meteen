@@ -22,6 +22,7 @@ sha2 = "0.10.8"
 meteen-model = { path = "../meteen-model" }
 nanoid = "0.4.0"
 directories = "5.0.1"
+bincode = "1.3.3"
 
 [dependencies.sea-orm-migration]
 features = ["sqlx-postgres", "runtime-tokio-rustls"]
