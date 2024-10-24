@@ -29,13 +29,17 @@ pub async fn create_user(state: State<AppState>, user: Json<CreateUser>) -> Resp
         password_salt: salt,
         vault_id: name.clone(),
     };
-    
+
     let transaction = match conn.get_postgres_connection_pool().begin().await {
         Ok(t) => t,
         Err(e) => {
             eprintln!("Failed to begin transaction: {}", e);
-            return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to begin transaction").into_response();
-        },
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to begin transaction",
+            )
+                .into_response();
+        }
     };
 
     match user_model.into_active_model().insert(&conn).await {
@@ -52,12 +56,12 @@ pub async fn create_user(state: State<AppState>, user: Json<CreateUser>) -> Resp
 
     let vaults = vaults.lock().await;
     match vaults.save_vault(&name, &vault).await {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => {
             eprintln!("Error saving vault: {}", e);
             // TODO: Handle this error
             let _ = transaction.rollback().await;
-            return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to create vault").into_response()
+            return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to create vault").into_response();
         }
     };
 
@@ -67,12 +71,13 @@ pub async fn create_user(state: State<AppState>, user: Json<CreateUser>) -> Resp
             eprintln!("Failed to commit transaction: {}", e);
             // TODO: Handle this error
             let _ = vaults.delete_vault(&name).await;
-            return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to finalize transaction").into_response()
-        },
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to finalize transaction",
+            )
+                .into_response();
+        }
     };
-
 
     (StatusCode::OK, "OK").into_response()
 }
-
-

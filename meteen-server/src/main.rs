@@ -5,20 +5,20 @@ use axum::{
 use color_eyre::eyre::Result;
 use sea_orm::{prelude::*, Database};
 
+mod auth;
 mod cfg;
 mod routes;
 mod vaults;
-mod auth;
 
 use cfg::Config;
 use routes::{create_user::create_user, get_vault::get_vault};
-use tokio::sync::Mutex;
 use std::sync::Arc;
+use tokio::sync::Mutex;
 
 #[derive(Clone)]
 struct AppState {
     conn: DatabaseConnection,
-    vaults: Arc<Mutex<vaults::Vaults>>
+    vaults: Arc<Mutex<vaults::Vaults>>,
 }
 
 #[tokio::main]
@@ -51,7 +51,10 @@ async fn main() -> Result<()> {
         .route("/", get(root))
         .route("/create", post(create_user))
         .route("/get/:id", get(get_vault))
-        .with_state(AppState { conn: connection, vaults: Arc::new(Mutex::new(vaults::Vaults::new(data_dir))) });
+        .with_state(AppState {
+            conn: connection,
+            vaults: Arc::new(Mutex::new(vaults::Vaults::new(data_dir))),
+        });
 
     axum::serve(listener, app).await?;
     Ok(())

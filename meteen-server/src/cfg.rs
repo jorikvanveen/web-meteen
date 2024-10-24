@@ -61,7 +61,7 @@ impl Config {
             db_pass,
             db_user,
             db_host,
-            data_dir
+            data_dir,
         })
     }
 }

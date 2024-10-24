@@ -6,8 +6,7 @@ type VaultIndex = usize;
 
 pub struct Vaults {
     base_path: PathBuf,
-    vaults: Vec<MeteenVault>,
-    id_map: HashMap<String, VaultIndex>,
+    cache: HashMap<String, MeteenVault>,
 }
 
 impl Vaults {
@@ -15,8 +14,7 @@ impl Vaults {
         dbg!(&base_path);
         Vaults {
             base_path: base_path.join("vaults"),
-            vaults: vec![],
-            id_map: HashMap::new(),
+            cache: HashMap::new(),
         }
     }
 
@@ -43,14 +41,19 @@ impl Vaults {
     }
 
     pub async fn get_vault(&mut self, id: &str) -> tokio::io::Result<&MeteenVault> {
-        match self.id_map.get(id) {
-            Some(vault_index) => return Ok(self.vaults.get(*vault_index).unwrap()),
-            None => {}
+        let is_cached = self.cache.contains_key(id);
+
+        if is_cached {
+            return Ok(self.cache.get(id).unwrap());
         }
 
         let vault = self.load_vault(id).await?;
 
-        self.vaults.push(vault);
-        Ok(self.vaults.last().unwrap())
+        self.cache.insert(id.into(), vault);
+        Ok(self.cache.get(id).unwrap())
+    }
+
+    pub async fn get_vault_mut() -> tokio::io::Result<&mut MeteenVault> {
+        todo!()
     }
 }
