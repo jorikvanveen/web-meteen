@@ -42,12 +42,15 @@ impl Vaults {
         tokio::fs::remove_file(vault_path).await
     }
 
-    pub async fn get_vault(&self, id: &str) -> &MeteenVault {
+    pub async fn get_vault(&mut self, id: &str) -> tokio::io::Result<&MeteenVault> {
         match self.id_map.get(id) {
-            Some(vault_index) => return self.vaults.get(*vault_index).unwrap(),
+            Some(vault_index) => return Ok(self.vaults.get(*vault_index).unwrap()),
             None => {}
         }
 
-        todo!()
+        let vault = self.load_vault(id).await?;
+
+        self.vaults.push(vault);
+        Ok(self.vaults.last().unwrap())
     }
 }

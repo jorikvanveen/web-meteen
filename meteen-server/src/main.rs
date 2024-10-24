@@ -8,15 +8,17 @@ use sea_orm::{prelude::*, Database};
 mod cfg;
 mod routes;
 mod vaults;
+mod auth;
 
 use cfg::Config;
-use routes::create_user::create_user;
+use routes::{create_user::create_user, get_vault::get_vault};
+use tokio::sync::Mutex;
 use std::sync::Arc;
 
 #[derive(Clone)]
 struct AppState {
     conn: DatabaseConnection,
-    vaults: Arc<vaults::Vaults>
+    vaults: Arc<Mutex<vaults::Vaults>>
 }
 
 #[tokio::main]
@@ -37,6 +39,8 @@ async fn main() -> Result<()> {
         data_dir,
     } = config;
 
+    tokio::fs::create_dir_all(&data_dir).await?;
+
     let listener = tokio::net::TcpListener::bind((address, port)).await?;
 
     let conn_str = format!("postgres://{db_user}:{db_pass}@{db_host}/{db_name}");
@@ -46,7 +50,8 @@ async fn main() -> Result<()> {
     let app = Router::new()
         .route("/", get(root))
         .route("/create", post(create_user))
-        .with_state(AppState { conn: connection, vaults: Arc::new(vaults::Vaults::new(data_dir)) });
+        .route("/get/:id", get(get_vault))
+        .with_state(AppState { conn: connection, vaults: Arc::new(Mutex::new(vaults::Vaults::new(data_dir))) });
 
     axum::serve(listener, app).await?;
     Ok(())

@@ -1,18 +1,13 @@
-use std::io::Write;
-
 use axum::http::StatusCode;
 use axum::response::Response;
-use axum::routing::trace;
 use axum::{extract::State, response::IntoResponse, Json};
-use color_eyre::Result;
-use entity::{prelude::*, user};
+use entity::user;
 use meteen_model::Database as MeteenVault;
-use rand::random;
 use sea_orm::entity::ActiveModelTrait;
 use sea_orm::IntoActiveModel;
 use serde::{Deserialize, Serialize};
-use sha2::Digest;
 
+use crate::auth::hash_password;
 use crate::AppState;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -30,7 +25,7 @@ pub async fn create_user(state: State<AppState>, user: Json<CreateUser>) -> Resp
 
     let user_model = user::Model {
         username: name.clone(),
-        password_hash: hash_password(password, salt.clone()),
+        password_hash: hash_password(&password, &salt),
         password_salt: salt,
         vault_id: name.clone(),
     };
@@ -55,6 +50,7 @@ pub async fn create_user(state: State<AppState>, user: Json<CreateUser>) -> Resp
 
     let vault = MeteenVault::new();
 
+    let vaults = vaults.lock().await;
     match vaults.save_vault(&name, &vault).await {
         Ok(_) => {},
         Err(e) => {
@@ -79,12 +75,4 @@ pub async fn create_user(state: State<AppState>, user: Json<CreateUser>) -> Resp
     (StatusCode::OK, "OK").into_response()
 }
 
-fn hash_password(password: String, salt: String) -> Vec<u8> {
-    let salted = format!("{}{}", password, salt);
 
-    let mut hasher = sha2::Sha512::new();
-    hasher.update(salted);
-    let hashed = hasher.finalize().to_vec();
-
-    return hashed;
-}
