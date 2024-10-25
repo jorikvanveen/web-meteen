@@ -35,6 +35,24 @@ impl Vaults {
         tokio::fs::write(vault_path, serialized).await
     }
 
+    /// # Panics
+    /// Panics if the id is not in the cache
+    pub async fn save_cached_vault(&mut self, id: &str) -> tokio::io::Result<()> {
+        if !self.cache.contains_key(id) {
+            panic!("Tried to save cached vault: {}, but it was not cached", id);
+        }
+
+        let vault_path = self.base_path.join(format!("{id}.mtvault"));
+        let vault = self.get_vault(id).await.unwrap();
+
+        dbg!(&vault_path);
+        let serialized = bincode::serialize(vault).map_err(|_| {
+            tokio::io::Error::new(tokio::io::ErrorKind::Other, "Unserializable vault")
+        })?;
+        tokio::fs::write(vault_path, serialized).await;
+        Ok(())
+    }
+
     pub async fn delete_vault(&self, id: &str) -> tokio::io::Result<()> {
         let vault_path = self.base_path.join(format!("{id}.mtvault"));
         tokio::fs::remove_file(vault_path).await
@@ -53,7 +71,16 @@ impl Vaults {
         Ok(self.cache.get(id).unwrap())
     }
 
-    pub async fn get_vault_mut() -> tokio::io::Result<&mut MeteenVault> {
-        todo!()
+    pub async fn get_vault_mut(&mut self, id: &str) -> tokio::io::Result<&mut MeteenVault> {
+        let is_cached = self.cache.contains_key(id);
+
+        if is_cached {
+            return Ok(self.cache.get_mut(id).unwrap());
+        }
+
+        let vault = self.load_vault(id).await?;
+
+        self.cache.insert(id.into(), vault);
+        Ok(self.cache.get_mut(id).unwrap())
     }
 }

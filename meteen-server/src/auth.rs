@@ -2,7 +2,7 @@ use axum::{
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
 };
-use entity::prelude::*;
+use entity::{prelude::*, user};
 use sea_orm::prelude::*;
 use sha2::Digest;
 
@@ -33,7 +33,7 @@ pub async fn is_valid_login(username: &str, password: &str, conn: DatabaseConnec
 pub async fn check_auth_headers(
     conn: &DatabaseConnection,
     headers: &HeaderMap,
-) -> Result<User, Response> {
+) -> Result<user::Model, Response> {
     let login = match headers.get("Login") {
         Some(l) => l,
         None => {
@@ -74,7 +74,7 @@ pub async fn check_auth_headers(
     let hashed_input = hash_password(password, &user.password_salt);
 
     if hashed_input == user.password_hash {
-        return Ok(User);
+        return Ok(user);
     }
 
     eprintln!("Wrong pasword for user: \"{}\"", username);

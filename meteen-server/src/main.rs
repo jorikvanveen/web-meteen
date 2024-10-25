@@ -11,7 +11,7 @@ mod routes;
 mod vaults;
 
 use cfg::Config;
-use routes::{create_user::create_user, get_vault::get_vault};
+use routes::{create_user::create_user, get_vault::get_vault, sync::sync};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -50,7 +50,8 @@ async fn main() -> Result<()> {
     let app = Router::new()
         .route("/", get(root))
         .route("/create", post(create_user))
-        .route("/get/:id", get(get_vault))
+        .route("/get", get(get_vault))
+        .route("/sync", post(sync))
         .with_state(AppState {
             conn: connection,
             vaults: Arc::new(Mutex::new(vaults::Vaults::new(data_dir))),
