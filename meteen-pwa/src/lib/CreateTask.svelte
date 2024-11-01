@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import {
     Button,
     ButtonGroup,
@@ -55,34 +57,36 @@
     };
   });
 
-  let taskName = "";
+  let taskName = $state("");
 
   let projectList = [
     { name: "Inbox", value: "inbox" },
     { name: "Work", value: "work" },
     { name: "Home", value: "home" },
   ];
-  let selectedProject = "inbox";
+  let selectedProject = $state("inbox");
 
-  let scheduleDate: Date | null = null;
-  let scheduleDateHasTime = false;
-  $: scheduleDateFormatted =
-    (scheduleDate ? formatDate(scheduleDate) : "") +
+  let scheduleDate: Date | null = $state(null);
+  let scheduleDateHasTime = $state(false);
+  let scheduleDateFormatted =
+    $derived((scheduleDate ? formatDate(scheduleDate) : "") +
     " " +
-    (scheduleDate && scheduleDateHasTime ? formatTime(scheduleDate) : "");
+    (scheduleDate && scheduleDateHasTime ? formatTime(scheduleDate) : ""));
 
-  let deadlineDate: Date | null = null;
-  let deadlineDateHasTime = false;
-  $: deadlineDateFormatted =
-    (deadlineDate ? formatDate(deadlineDate) : "") +
+  let deadlineDate: Date | null = $state(null);
+  let deadlineDateHasTime = $state(false);
+  let deadlineDateFormatted =
+    $derived((deadlineDate ? formatDate(deadlineDate) : "") +
     " " +
-    (deadlineDate && deadlineDateHasTime ? formatTime(deadlineDate) : "");
+    (deadlineDate && deadlineDateHasTime ? formatTime(deadlineDate) : ""));
 
-  let priority = 1;
-  $: console.log(priority);
+  let priority = $state(1);
+  run(() => {
+    console.log(priority);
+  });
 
-  let pickingScheduled = false;
-  let pickingDeadline = false;
+  let pickingScheduled = $state(false);
+  let pickingDeadline = $state(false);
 </script>
 
 <div
@@ -143,12 +147,12 @@
       </ButtonGroup>
     </div>
     <div class="flex flex-col sm:flex-row mt-4 sm:mt-0 justify-between gap-4">
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
       <div
         aria-haspopup="dialog"
         role="button"
         tabindex="0"
-        on:click={() => (pickingDeadline = true)}
+        onclick={() => (pickingDeadline = true)}
         class="w-full cursor-pointer"
       >
         <Label>Deadline</Label>
@@ -163,10 +167,10 @@
           />
         </ButtonGroup>
       </div>
-      <!-- svelte-ignore a11y-no-static-element-interactions -->
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
       <div
-        on:click={() => (pickingScheduled = true)}
+        onclick={() => (pickingScheduled = true)}
         class="w-full cursor-pointer"
       >
         <Label>Scheduled</Label>

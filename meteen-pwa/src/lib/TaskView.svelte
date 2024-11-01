@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { Checkbox } from "flowbite-svelte";
   import type { Task } from "../meteen-storage-wasm/meteen_storage_wasm";
   import { getContext } from "svelte";
@@ -7,12 +9,14 @@
 
   const storage: VaultStorage = getContext("storage");
 
-  export let task: Task;
+  interface Props {
+    task: Task;
+  }
 
-  $: deadline = task.deadline ? fromUtcMillis(task.deadline.utc_millis) : null;
-  $: console.log("viewing with deadline", task.deadline);
+  let { task }: Props = $props();
 
-  let done = task.done;
+
+  let done = $state(task.done);
 
   function fromUtcMillis(millis: bigint): Date {
     console.log("Creating date from", millis);
@@ -23,6 +27,10 @@
   function updateDone(): void {
     storage.updateTaskDone(task.task_id, done);
   }
+  let deadline = $derived(task.deadline ? fromUtcMillis(task.deadline.utc_millis) : null);
+  run(() => {
+    console.log("viewing with deadline", task.deadline);
+  });
 </script>
 
 <div class="flex flex-row items-center gap-4 m-2">

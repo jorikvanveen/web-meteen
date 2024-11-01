@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { getContext } from "svelte";
   import type { Writable } from "svelte/store";
   import Storage from "../lib/storage";
@@ -14,10 +16,12 @@
   const storage: Storage = getContext("storage");
   const projects = storage.projects;
 
-  let adding = false;
+  let adding = $state(false);
 
-  $: tasks = $projects[0].tasks;
-  $: console.log(tasks);
+  let tasks = $derived($projects[0].tasks);
+  run(() => {
+    console.log(tasks);
+  });
 </script>
 
 <h1 class="text-4xl font-bold pb-2">Today</h1>

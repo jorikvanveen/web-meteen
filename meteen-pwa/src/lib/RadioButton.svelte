@@ -4,11 +4,21 @@
   import { createEventDispatcher } from "svelte";
   import type { Writable } from "svelte/store";
 
-  export let selectedValue: string;
-  export let value: string;
-  export let disabled: boolean = false;
+  interface Props {
+    selectedValue: string;
+    value: string;
+    disabled?: boolean;
+    children?: import('svelte').Snippet;
+  }
 
-  $: selected = selectedValue == value;
+  let {
+    selectedValue = $bindable(),
+    value,
+    disabled = false,
+    children
+  }: Props = $props();
+
+  let selected = $derived(selectedValue == value);
 </script>
 
 <Button
@@ -21,5 +31,5 @@
   color={selected ? "primary" : "alternative"}
   class="w-full justify-start"
 >
-  <slot />
+  {@render children?.()}
 </Button>

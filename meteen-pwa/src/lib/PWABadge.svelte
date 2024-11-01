@@ -44,12 +44,12 @@
     needRefresh.set(false);
   }
 
-  $: toast = $offlineReady || $needRefresh;
-  $: message = $offlineReady
+  let toast = $derived($offlineReady || $needRefresh);
+  let message = $derived($offlineReady
     ? "App ready to work offline"
     : $needRefresh
       ? "New content available, click on reload button to update."
-      : "";
+      : "");
 </script>
 
 <!-- {#if toast}

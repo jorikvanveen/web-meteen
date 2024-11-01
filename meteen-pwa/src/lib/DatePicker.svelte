@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { createEventDispatcher, onMount, tick } from "svelte";
   import { fade, fly } from "svelte/transition";
   import Today from "../page/Today.svelte";
@@ -23,8 +25,12 @@
     serializeToHtmlTime,
   } from "./date_util";
 
-  export let datetime: Date | null = null;
-  export let withTime: boolean = false;
+  interface Props {
+    datetime?: Date | null;
+    withTime?: boolean;
+  }
+
+  let { datetime = $bindable(null), withTime = $bindable(false) }: Props = $props();
 
   const dispatch = createEventDispatcher();
 
@@ -65,11 +71,9 @@
     };
   });
 
-  let dateInputValue: string = "";
-  $: onDateInputChange(dateInputValue);
+  let dateInputValue: string = $state("");
 
-  let timeInputValue: string = "";
-  $: onTimeInputChange(timeInputValue);
+  let timeInputValue: string = $state("");
 
   function onDateInputChange(_: string) {
     if (dateInputValue == "") return;
@@ -92,8 +96,7 @@
     return new Date(Date.UTC(80, 0, 0, hour - 1, minute));
   }
   type DateType = "today" | "tomorrow" | "next-week" | "custom" | "none";
-  let dateType: DateType = "today";
-  $: handleDateTypeChange(dateType);
+  let dateType: DateType = $state("today");
 
   const today = new Date();
   const tomorrow = new Date(today.valueOf() + 24 * 60 * 60 * 1000);
@@ -152,8 +155,7 @@
     | "night"
     | "custom"
     | "none";
-  let timeType: TimeType = "none";
-  $: handleTimeTypeChange(timeType);
+  let timeType: TimeType = $state("none");
 
   if (withTime && datetime) {
     let hour = datetime.getHours();
@@ -204,17 +206,33 @@
     }
   }
 
-  $: withTime = timeType != "none";
-  $: console.log(datetime);
-  $: timeDisabled = datetime == null;
+  run(() => {
+    onDateInputChange(dateInputValue);
+  });
+  run(() => {
+    onTimeInputChange(timeInputValue);
+  });
+  run(() => {
+    handleDateTypeChange(dateType);
+  });
+  run(() => {
+    handleTimeTypeChange(timeType);
+  });
+  run(() => {
+    withTime = timeType != "none";
+  });
+  run(() => {
+    console.log(datetime);
+  });
+  let timeDisabled = $derived(datetime == null);
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   transition:fade={{ duration: 200 }}
   class="fixed top-0 left-0 w-full h-full opacity-50 bg-black z-[29]"
-  on:click={(e) => {
+  onclick={(e) => {
     e.preventDefault();
     history.back();
   }}
